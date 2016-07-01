@@ -28,8 +28,7 @@ def getValfromFile(filename):
     return val
  
 def getList(amazonbucket, inputfile):
-   amazonbucket = re.sub('s3://biocorebackup/', '', amazonbucket)
-   command="s3cmd ls s3://biocorebackup/"+amazonbucket+"/"+inputfile
+   command="s3cmd ls "+amazonbucket+"/"+inputfile
    print command
    child = os.popen(command)
    jobout = child.read().rstrip()
