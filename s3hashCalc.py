@@ -31,10 +31,9 @@ def getValfromFile(filename):
     	sys.exit(84)
     return val
  
-def calcHash(amazonbucket, inputfile):
+def calcHash(amazonbucket, inputfile, ak, sk):
    command="mkdir -p /mnt/tmp; cd /mnt/tmp;"
-   amazonbucket = re.sub('s3://biocorebackup/', '', amazonbucket)
-   command+="s3cmd get --skip-existing s3://biocorebackup/"+amazonbucket+"/"+inputfile+">/dev/null;"
+   command+="s3cmd get --skip-existing --access_key "+ak+" --secret_key "+sk+" "+amazonbucket+"/"+inputfile+">/dev/null;"
    command+="md5sum "+inputfile+" > "+inputfile+".md5sum;"
    print command
    child = os.popen(command)
@@ -49,8 +48,7 @@ def calcHash(amazonbucket, inputfile):
    return hashstr
 
 def getLS(amazonbucket, inputfile):
-   amazonbucket = re.sub('s3://biocorebackup/', '', amazonbucket)
-   command="s3cmd ls s3://biocorebackup/"+amazonbucket+"/"+inputfile
+   command="s3cmd ls "+amazonbucket+"/"+inputfile
    print command
    child = os.popen(command)
    jobout = child.read().rstrip()
@@ -62,7 +60,7 @@ def getLS(amazonbucket, inputfile):
       print "\n\nDoesn't Exist\n\n"
    return res
 
-def runCalcHash(input, dirname, amazon_bucket):
+def runCalcHash(input, dirname, amazon_bucket, ak, sk):
    try:
        files=input.split(',')
        count=0
@@ -71,12 +69,12 @@ def runCalcHash(input, dirname, amazon_bucket):
            hashstr1 = ""
            hashstr2 = ""
            if (getLS(amazon_bucket, files[0].strip()) and getLS(amazon_bucket, files[1].strip())):
-              hashstr1=calcHash(amazon_bucket, files[0].strip())
-              hashstr2=calcHash(amazon_bucket, files[1].strip())
+              hashstr1=calcHash(amazon_bucket, files[0].strip(), ak, sk)
+              hashstr2=calcHash(amazon_bucket, files[1].strip(), ak, sk)
            hashstr=hashstr1+","+hashstr2
        else:
            if (getLS(amazon_bucket, input.strip())):
-               hashstr=calcHash(amazon_bucket, input.strip())
+               hashstr=calcHash(amazon_bucket, input.strip(), ak, sk)
        if (len(hashstr)>10):
          input=urllib.quote(input)
          dirname=urllib.quote(dirname)
@@ -95,10 +93,13 @@ def main():
            fastq_dir=result['fastq_dir']
            filename=result['file_name']
            amazon_bucket=result['amazon_bucket']
+           ak=result['ak']
+           sk=result['sk']
            print fastq_dir 
            print filename 
            print amazon_bucket
-           runCalcHash(filename, fastq_dir, amazon_bucket)
+           if (amazon_bucket[0:5]=="s3://"):
+               runCalcHash(filename, fastq_dir, amazon_bucket, ak, sk) 
    except Exception, ex:
         stop_err('Error (line:%s)running main\n%s'%(format(sys.exc_info()[-1].tb_lineno), str(ex)))
 
