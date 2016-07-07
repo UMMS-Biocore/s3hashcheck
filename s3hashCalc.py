@@ -1,12 +1,15 @@
 #!/share/bin/python
 
 from optparse import OptionParser
+from binascii import hexlify, unhexlify
+from simplecrypt import encrypt, decrypt
 import os
 import urllib, json
 import re
 import sys
 import re
 import cgi
+import ConfigParser
 
 
 url="http://dolphin.umassmed.edu/ajax/dolphinfuncs.php?p=getFileList"
@@ -89,12 +92,14 @@ def main():
    try:
        results=getFileList()
        for result in results:
-       
+           config = ConfigParser.ConfigParser()
+           config.readfp(open('.salt'))
+           password = config.get('Dolphin', 'AMAZON')
            fastq_dir=result['fastq_dir']
            filename=result['file_name']
            amazon_bucket=result['amazon_bucket']
-           ak=result['ak']
-           sk=result['sk']
+           ak=decrypt(password, unhexlify(result['ak']))
+           sk=decrypt(password, unhexlify(result['sk']))
            print fastq_dir 
            print filename 
            print amazon_bucket
