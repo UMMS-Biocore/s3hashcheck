@@ -93,7 +93,7 @@ def main():
        results=getFileList()
        for result in results:
            config = ConfigParser.ConfigParser()
-           config.readfp(open('.salt'))
+           config.readfp(open(os.path.dirname(os.path.realpath(__file__))+'/.salt'))
            password = config.get('Dolphin', 'AMAZON')
            fastq_dir=result['fastq_dir']
            filename=result['file_name']
