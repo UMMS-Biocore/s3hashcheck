@@ -8,7 +8,6 @@ import sys
 import re
 import cgi
 
-
 url="http://dolphin.umassmed.edu/ajax/dolphinfuncs.php?p=getFileList"
    
 def getFileList():
